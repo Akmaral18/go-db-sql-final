@@ -33,9 +33,7 @@ func getTestParcel() Parcel {
 func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 	// настройте подключение к БД
 	store := NewParcelStore(db)
@@ -67,9 +65,7 @@ func TestAddGetDelete(t *testing.T) {
 	require.NoError(t, err)
 
 	_, err = store.Get(parcel.Number)
-	if err != sql.ErrNoRows {
-		t.Error(err)
-	}
+	require.ErrorIs(t, err, sql.ErrNoRows)
 
 }
 
@@ -77,9 +73,7 @@ func TestAddGetDelete(t *testing.T) {
 func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 	store := NewParcelStore(db)
 
@@ -100,7 +94,7 @@ func TestSetAddress(t *testing.T) {
 	// получите добавленную посылку и убедитесь, что адрес обновился
 
 	row, err := store.Get(id)
-	require.Equal(t, row.Address, newAddress)
+	require.Equal(t, newAddress, row.Address)
 
 }
 
@@ -108,9 +102,7 @@ func TestSetAddress(t *testing.T) {
 func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -131,9 +123,8 @@ func TestSetStatus(t *testing.T) {
 	// check
 	// получите добавленную посылку и убедитесь, что статус обновился
 	row, err := store.Get(id)
-	if err != nil {
-		t.Error(err)
-	}
+
+	require.NoError(t, err)
 	require.Equal(t, row.Status, ParcelStatusSent)
 }
 
@@ -141,9 +132,7 @@ func TestSetStatus(t *testing.T) {
 func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer db.Close()
 
 	store := NewParcelStore(db)
@@ -188,9 +177,7 @@ func TestGetByClient(t *testing.T) {
 	// check
 	for _, parcel := range storedParcels {
 		number, ok := parcelMap[parcel.Number]
-		if !ok {
-			t.Error("Number does not exist")
-		}
+		require.True(t, ok)
 		require.Equal(t, parcel, number)
 		// в parcelMap лежат добавленные посылки, ключ - идентификатор посылки, значение - сама посылка
 		// убедитесь, что все посылки из storedParcels есть в parcelMap
